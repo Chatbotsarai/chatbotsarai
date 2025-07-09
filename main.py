@@ -89,18 +89,27 @@ def get_reply(lang: str) -> str:
 def login_to_x(page):
     try:
         page.goto("https://x.com/login")
+
+        page.wait_for_selector("input[name='text']", timeout=15000)
         page.fill("input[name='text']", USERNAME)
+
+        page.wait_for_selector("div[role='button']", timeout=15000)
         page.click("div[role='button']")
-        time.sleep(2)
-        page.wait_for_selector("input[name='password']", timeout=30000)
+        time.sleep(3)
+
+        page.screenshot(path="debug_after_username.png")
+
+        page.wait_for_selector("input[name='password']", timeout=20000)
         page.fill("input[name='password']", PASSWORD)
+
+        page.wait_for_selector("div[role='button']", timeout=15000)
         page.click("div[role='button']")
         time.sleep(5)
-    except TimeoutError:
-        page.screenshot(path="error_password_timeout.png")
-        print("❌ Nie znaleziono pola hasła!")
-        browser.close()
-        exit(1)
+
+    except TimeoutError as te:
+        page.screenshot(path="login_timeout.png")
+        print(f"❌ Timeout w login_to_x: {te}")
+        raise
 
 def process_keyword(page, keyword: str, lang: str) -> bool:
     """Obsługuje jedno słowo kluczowe, odpowiada na tweet."""
