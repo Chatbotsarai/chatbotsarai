@@ -86,7 +86,7 @@ def get_reply(lang: str) -> str:
     """Zwraca losową odpowiedź w zależności od języka."""
     return random.choice(REPLIES_PL if lang == "pl" else REPLIES_EN)
 
- try:
+    try:
         page.goto("https://x.com/login")
         page.fill("input[name='text']", USERNAME)
         page.click("div[role='button']")
