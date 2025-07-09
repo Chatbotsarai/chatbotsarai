@@ -89,19 +89,20 @@ def process_keyword(page, keyword, lang):
     time.sleep(5)
     
     try:
-      page.click("article")
+        page.click("article")
         time.sleep(3)
         tweet_text = page.inner_text("article")
         print(f"🔍 Znalazłam tweet: {tweet_text[:100]}...")
-      
-reply_text = get_reply(lang)
-
+        
+        reply_text = get_reply(lang)
+        
         page.fill("div[aria-label='Tweet your reply']", reply_text)
         page.click("div[data-testid='tweetButton']")
         time.sleep(3)
 
         print(f"✅ Odpowiedź ({lang.upper()}) do słowa: {keyword}")
         return True
+
     except Exception as e:
         print(f"⚠️ Błąd przy słowie '{keyword}': {e}")
         return False
@@ -119,12 +120,11 @@ with sync_playwright() as p:
     page.click("div[role='button']")
     time.sleep(5)
   
-     for keyword in KEYWORDS_PL:
-        if process_keyword(page, keyword, "pl"):
-            break  
+for keyword in KEYWORDS_PL:
+    if process_keyword(page, keyword, "pl"):
+        break
           
-  for keyword in KEYWORDS_EN:
-        if process_keyword(page, keyword, "en"):
-          
-    browser.close()
-            break
+for keyword in KEYWORDS_EN:
+    if process_keyword(page, keyword, "en"):
+        browser.close()
+        break
