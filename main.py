@@ -102,26 +102,38 @@ def login_to_x(page):
         print(f"URL after clicking Next: {page.url}")
         with open("page_source_after_next.html", "w", encoding="utf-8") as f:
             f.write(page.content())
-        if page.locator('text="verify"').count() > 0 or page.locator('text="captcha"').count() > 0:
+        try:
+            use_password = page.locator('div[role="button"]:has-text("Use password")')
+            if use_password.is_visible():
+                print("ℹ️ Klikam 'Use password'")
+                use_password.click()
+                time.sleep(2)
+        except:
+            pass                    
+        if page.locator('text=verify').count() > 0 or page.locator('text=captcha').count() > 0:
             print("❌ Wykryto CAPTCHA lub weryfikację")
             page.screenshot(path="captcha_detected.png")
             raise Exception("CAPTCHA or verification detected")
-        page.wait_for_selector("input[name='password']", timeout=30000)
-        page.fill("input[name='password']", PASSWORD)
-        login_button = page.locator('div.css-146c3p1.r-b88u0q:has-text("Log in")')
-        login_button.wait_for(timeout=30000)
+
+        page.wait_for_selector("input[type='password']", timeout=30000)
+        page.fill("input[type='password']", PASSWORD)
+        login_button = page.locator('div[role="button"]:has-text("Log in")')
+        login_button.wait_for(timeout=15000)
         login_button.click()
         time.sleep(5)
+
         page.screenshot(path="debug_after_login.png")
-        print(f"URL after login: {page.url}")
+        print(f"✅ Zalogowano! URL: {page.url}")
+
     except TimeoutError as te:
         page.screenshot(path="login_timeout.png")
         print(f"❌ Timeout w login_to_x: {te}")
         raise
+
     except Exception as e:
         page.screenshot(path="error_other.png")
         print(f"❌ Błąd w login_to_x: {e}")
-        raise
+        raise        
         
 def process_keyword(page, keyword: str, lang: str) -> bool:
     """Obsługuje jedno słowo kluczowe, odpowiada na tweet."""
