@@ -86,26 +86,20 @@ def get_reply(lang: str) -> str:
     """Zwraca losową odpowiedź w zależności od języka."""
     return random.choice(REPLIES_PL if lang == "pl" else REPLIES_EN)
 
-def login_to_x(page):
-    """Loguje do X."""
-    try:
+ try:
         page.goto("https://x.com/login")
-        page.wait_for_selector("input[name='text']", timeout=60000)
         page.fill("input[name='text']", USERNAME)
-        page.wait_for_selector("button[data-testid='LoginForm_Login_Button']", timeout=60000)
-        page.click("button[data-testid='LoginForm_Login_Button']")
-        page.wait_for_selector("input[name='password']", timeout=60000)
+        page.click("div[role='button']")
+        time.sleep(2)
+        page.wait_for_selector("input[name='password']", timeout=10000)
         page.fill("input[name='password']", PASSWORD)
-        page.wait_for_selector("button[data-testid='LoginForm_Login_Button']", timeout=60000)
-        page.click("button[data-testid='LoginForm_Login_Button']")
-        page.wait_for_load_state("networkidle")
-        print("✅ Zalogowano do X")
-    except Exception as e:
-        page.screenshot(path="error_login.png")
-        with open("error_login.html", "w", encoding="utf-8") as f:
-            f.write(page.content())
-        print(f"❌ Błąd logowania: {e}")
-        raise
+        page.click("div[role='button']")
+        time.sleep(5)
+    except TimeoutError:
+        page.screenshot(path="error_password_timeout.png")
+        print("❌ Nie znaleziono pola hasła!")
+        browser.close()
+        exit(1)
 
 def process_keyword(page, keyword: str, lang: str) -> bool:
     """Obsługuje jedno słowo kluczowe, odpowiada na tweet."""
