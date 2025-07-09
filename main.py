@@ -85,7 +85,8 @@ REPLIES_EN = [  "Hello! The Ottoman Empire is a fascinating topic, would you lik
 def get_reply(lang: str) -> str:
     """Zwraca losową odpowiedź w zależności od języka."""
     return random.choice(REPLIES_PL if lang == "pl" else REPLIES_EN)
-
+    
+def login_to_x(page):
     try:
         page.goto("https://x.com/login")
         page.fill("input[name='text']", USERNAME)
