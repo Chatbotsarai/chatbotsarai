@@ -99,17 +99,33 @@ def login_to_x(page):
         button.click()
         time.sleep(5)
         page.screenshot(path="debug_after_click.png")
-        page.wait_for_selector("input[name='password']", timeout=20000)
-        page.fill("input[name='password']", PASSWORD)
+        print(f"URL after clicking Next: {page.url}")
+        with open("page_source_after_next.html", "w", encoding="utf-8") as f:
+            f.write(page.content())
+        if page.locator('text="verify"').count() > 0 or page.locator('text="captcha"').count() > 0:
+            print("❌ Wykryto CAPTCHA lub weryfikację")
+            page.screenshot(path="captcha_detected.png")
+            raise Exception("CAPTCHA or verification detected")
+        password_input = page.locator('input[type="password"], input[name="password"], input[autocomplete="current-password"]')
+        password_input.wait_for(timeout=30000) 
+        password_input.fill(PASSWORD)
         with open("page_source_before_login.html", "w", encoding="utf-8") as f:
             f.write(page.content())
         login_button = page.locator('div.css-146c3p1.r-b88u0q:has-text("Log in")')
+        login_button.wait_for(timeout=30000)
+        login_button.click()
         time.sleep(5)
+        page.screenshot(path="debug_after_login.png")
+        print(f"URL after login: {page.url}")
     except TimeoutError as te:
         page.screenshot(path="login_timeout.png")
         print(f"❌ Timeout w login_to_x: {te}")
         raise
-
+    except Exception as e:
+        page.screenshot(path="error_other.png")
+        print(f"❌ Błąd w login_to_x: {e}")
+        raise
+        
 def process_keyword(page, keyword: str, lang: str) -> bool:
     """Obsługuje jedno słowo kluczowe, odpowiada na tweet."""
     try:
