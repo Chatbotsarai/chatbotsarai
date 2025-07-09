@@ -106,6 +106,7 @@ def login_to_x(page):
             print("❌ Wykryto CAPTCHA lub weryfikację")
             page.screenshot(path="captcha_detected.png")
             raise Exception("CAPTCHA or verification detected")
+        page.wait_for_selector("input[name='password']", timeout=30000)
         page.fill("input[name='password']", PASSWORD)
         login_button = page.locator('div.css-146c3p1.r-b88u0q:has-text("Log in")')
         login_button.wait_for(timeout=30000)
