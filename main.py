@@ -93,17 +93,19 @@ def login_to_x(page):
         page.wait_for_selector("input[name='text']", timeout=15000)
         page.fill("input[name='text']", USERNAME)
 
-        page.wait_for_selector("div[role='button']", timeout=15000)
-        page.click("div[role='button']")
-        time.sleep(3)
-
         page.screenshot(path="debug_after_username.png")
+
+        button = page.locator('div[role="button"]')
+        button.wait_for(timeout=15000)
+        button.click()
+
+        time.sleep(3)
+        page.screenshot(path="debug_after_click.png")
 
         page.wait_for_selector("input[name='password']", timeout=20000)
         page.fill("input[name='password']", PASSWORD)
 
-        page.wait_for_selector("div[role='button']", timeout=15000)
-        page.click("div[role='button']")
+        page.locator('div[role="button"]').click(timeout=15000)
         time.sleep(5)
 
     except TimeoutError as te:
