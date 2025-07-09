@@ -92,14 +92,18 @@ def login_to_x(page):
         page.wait_for_selector("input[name='text']", timeout=30000)
         page.fill("input[name='text']", USERNAME)
         page.screenshot(path="debug_after_username.png")
-        button = page.locator('div:has-text("Next")')
+        with open("page_source_before_next.html", "w", encoding="utf-8") as f:
+            f.write(page.content())
+        button = page.locator('div.css-146c3p1.r-b88u0q:has-text("Next")')
         button.wait_for(timeout=30000)
         button.click()
         time.sleep(5)
         page.screenshot(path="debug_after_click.png")
         page.wait_for_selector("input[name='password']", timeout=20000)
         page.fill("input[name='password']", PASSWORD)
-        page.locator('div:has-text("Log in")').click(timeout=30000)
+        with open("page_source_before_login.html", "w", encoding="utf-8") as f:
+            f.write(page.content())
+        login_button = page.locator('div.css-146c3p1.r-b88u0q:has-text("Log in")')
         time.sleep(5)
     except TimeoutError as te:
         page.screenshot(path="login_timeout.png")
