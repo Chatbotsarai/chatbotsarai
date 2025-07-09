@@ -90,16 +90,20 @@ def login_to_x(page):
     """Loguje do X."""
     try:
         page.goto("https://x.com/login")
-        page.wait_for_selector("input[name='text']", timeout=30000)
+        page.wait_for_selector("input[name='text']", timeout=60000)
         page.fill("input[name='text']", USERNAME)
-        page.click("div[role='button']")
-        page.wait_for_selector("input[name='password']", timeout=30000)
+        page.wait_for_selector("button[data-testid='LoginForm_Login_Button']", timeout=60000)
+        page.click("button[data-testid='LoginForm_Login_Button']")
+        page.wait_for_selector("input[name='password']", timeout=60000)
         page.fill("input[name='password']", PASSWORD)
-        page.click("div[role='button']")
+        page.wait_for_selector("button[data-testid='LoginForm_Login_Button']", timeout=60000)
+        page.click("button[data-testid='LoginForm_Login_Button']")
         page.wait_for_load_state("networkidle")
         print("✅ Zalogowano do X")
     except Exception as e:
         page.screenshot(path="error_login.png")
+        with open("error_login.html", "w", encoding="utf-8") as f:
+            f.write(page.content())
         print(f"❌ Błąd logowania: {e}")
         raise
 
