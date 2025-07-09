@@ -1,4 +1,4 @@
-from playwright.sync_api import sync_playwright
+1from playwright.sync_api import sync_playwright
 import os
 import time
 import random
@@ -92,14 +92,14 @@ def login_to_x(page):
         page.wait_for_selector("input[name='text']", timeout=30000)
         page.fill("input[name='text']", USERNAME)
         page.screenshot(path="debug_after_username.png")
-        page.click("div[role='button']")
+        button = page.locator('div:has-text("Next")')
         button.wait_for(timeout=30000)
         button.click()
-        time.sleep(3)
+        time.sleep(5)
         page.screenshot(path="debug_after_click.png")
         page.wait_for_selector("input[name='password']", timeout=20000)
         page.fill("input[name='password']", PASSWORD)
-        page.locator('div[role="button"]').click(timeout=30000)
+        page.locator('div:has-text("Log in")').click(timeout=30000)
         time.sleep(5)
     except TimeoutError as te:
         page.screenshot(path="login_timeout.png")
