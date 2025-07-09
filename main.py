@@ -103,7 +103,7 @@ def process_keyword(page, keyword, lang):
         print(f"✅ Odpowiedź ({lang.upper()}) do słowa: {keyword}")
         return True
 
-    except Exception as e:
+except Exception as e:
         print(f"⚠️ Błąd przy słowie '{keyword}': {e}")
         return False
 
@@ -111,18 +111,19 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     context = browser.new_context()
     page = context.new_page()
-
-    page.goto("https://x.com/login")
-    page.fill("input[name='text']", USERNAME)
-    page.click("div[role='button']")
-    time.sleep(2)
-    page.wait_for_selector("input[name='password']", timeout=10000)
-    page.fill("input[name='password']", PASSWORD)
-    page.click("div[role='button']")
-    time.sleep(5)
+    
+    try:
+        page.goto("https://x.com/login")
+        page.fill("input[name='text']", USERNAME)
+        page.click("div[role='button']")
+        time.sleep(2)
+        page.wait_for_selector("input[name='password']", timeout=10000)
+        page.fill("input[name='password']", PASSWORD)
+        page.click("div[role='button']")
+        time.sleep(5)
 except TimeoutError:
-    page.screenshot(path="error_password_timeout.png")
-    print("❌ Nie znaleziono pola hasła!")
+        page.screenshot(path="error_password_timeout.png")
+        print("❌ Nie znaleziono pola hasła!")
   
 for keyword in KEYWORDS_PL:
     if process_keyword(page, keyword, "pl"):
