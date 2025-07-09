@@ -30,3 +30,17 @@ jobs:
           X_PASSWORD: ${{ secrets.X_PASSWORD }}
         run: |
           python main.py
+          - name: Upload debug artifacts
+        if: always()  # Wykonaj nawet w przypadku błędu
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-artifacts
+          path: |
+            debug_after_username.png
+            debug_after_click.png
+            debug_after_login.png
+            login_timeout.png
+            page_source_before_next.html
+            page_source_after_next.html
+            page_source_before_login.html
+          retention-days: 7
