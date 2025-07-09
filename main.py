@@ -116,9 +116,13 @@ with sync_playwright() as p:
     page.fill("input[name='text']", USERNAME)
     page.click("div[role='button']")
     time.sleep(2)
+    page.wait_for_selector("input[name='password']", timeout=10000)
     page.fill("input[name='password']", PASSWORD)
     page.click("div[role='button']")
     time.sleep(5)
+except TimeoutError:
+    page.screenshot(path="error_password_timeout.png")
+    print("❌ Nie znaleziono pola hasła!")
   
 for keyword in KEYWORDS_PL:
     if process_keyword(page, keyword, "pl"):
