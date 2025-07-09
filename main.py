@@ -96,7 +96,7 @@ def process_keyword(page, keyword, lang):
       
 reply_text = get_reply(lang)
 
- page.fill("div[aria-label='Tweet your reply']", reply_text)
+        page.fill("div[aria-label='Tweet your reply']", reply_text)
         page.click("div[data-testid='tweetButton']")
         time.sleep(3)
 
