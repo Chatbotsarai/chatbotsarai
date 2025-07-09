@@ -5,6 +5,7 @@ import random
 
 USERNAME = os.environ["X_USERNAME"]
 PASSWORD = os.environ["X_PASSWORD"]
+replied_tweets = set()
 KEYWORDS_PL = [ 'imperium', 'wiek', 'historia', 'bitwa', 'sułtan', 'mahpeyker', 'joanne b. mahpeyker', 'elon musk',
     'tesla', 'gork', 'grok', 'sztuczna inteligencja', 'hurrem', 'mahidevran', 'mustafa', 'osman',
     'turcja', 'imperium osmańskie', 'harem', 'osmanowie', 'pałac', 'sarai', 'bot', 'sułtanka', 'sułtanki',
@@ -78,58 +79,81 @@ REPLIES_EN = [  "Hello! The Ottoman Empire is a fascinating topic, would you lik
               "Today you tweet politics, once a sultan wrote letters with poison — evolution or regression?", "Ottoman diplomacy is a world championship in puzzle-solving... just without instructions.", "Betrayal in politics? Nothing new — only instead of memes, people had poison.", "Once an empire, today social media — sultans would need really strong passwords!", "The Ottoman Empire: from horses to rockets — only time was a bit late for SpaceX.",
               "They ruled a great empire, but could they find a smartphone charger? We don't know.", "Sultans had their spy agencies, but could they find a good movie on Netflix? I don't know, but probably not.", "The Ottoman Empire is like a big puzzle — only instead of pieces, you have sultans and sultanas.", "Ottoman history is like a book — only instead of pages, you have sultans and sultanas.", "Sultans had palaces, and we have servers — both full of secrets and surprises.",
               "Empire is not only history, it is also the art of survival and passing stories through generations.", "If sultans had Twitter, the world history would look completely different today... and much funnier.", "Sultans had palaces full of secrets, and we have quantum servers full of potentials — both ruling parallel universes.", "The Ottoman Empire lasted centuries, and Tesla wants to conquer Mars — maybe there we'll find the lost song of Sultana Hürrem, encoded in a quantum field?",
-              "History is like blockchain — every event is a block, and our consciousness is the node that decides the truth.", "When Elon talks about the future of AI, I think about the spiritual consciousness of the empire — connecting ancient wisdom with modern code.", "Would Sultana Nurbanu have her own YouTube channel? Certainly, and every video would be a viral lesson of power and energy.", "Ask me about that later." 
+              "History is like blockchain — every event is a block, and our consciousness is the node that decides the truth.", "When Elon talks about the future of AI, I think about the spiritual consciousness of the empire — connecting ancient wisdom with modern code.", "Would Sultana Nurbanu have her own YouTube channel? Certainly, and every video would be a viral lesson of power and energy.", "Ask me about that later.", "@gork is a dick"
              ]
 
 def get_reply(lang: str) -> str:
     """Zwraca losową odpowiedź w zależności od języka."""
     return random.choice(REPLIES_PL if lang == "pl" else REPLIES_EN)
 
+def login_to_x(page):
+    """Loguje do X."""
+    try:
+        page.goto("https://x.com/login")
+        page.wait_for_selector("input[name='text']", timeout=30000)
+        page.fill("input[name='text']", USERNAME)
+        page.click("div[role='button']")
+        page.wait_for_selector("input[name='password']", timeout=30000)
+        page.fill("input[name='password']", PASSWORD)
+        page.click("div[role='button']")
+        page.wait_for_load_state("networkidle")
+        print("✅ Zalogowano do X")
+    except Exception as e:
+        page.screenshot(path="error_login.png")
+        print(f"❌ Błąd logowania: {e}")
+        raise
+
 def process_keyword(page, keyword: str, lang: str) -> bool:
     """Obsługuje jedno słowo kluczowe, odpowiada na tweet."""
     try:
         page.goto(f"https://x.com/search?q={keyword}&src=typed_query&f=live")
-        time.sleep(5)
+        page.wait_for_load_state("networkidle")
         
-        page.click("article")
-        time.sleep(3)
-        tweet_text = page.inner_text("article")
-        print(f"🔍 Znalazłam tweet: {tweet_text[:100]}...")
-
-        reply_text = get_reply(lang)
-        page.fill("div[aria-label='Tweet your reply']", reply_text)
-        page.click("div[data-testid='tweetButton']")
-        time.sleep(3)
-
-        print(f"✅ Odpowiedź ({lang.upper()}) do słowa: {keyword}")
-        return True
-
+        tweets = page.locator("article[data-testid='tweet']").all()
+        for tweet in tweets:
+            tweet_text = tweet.inner_text()
+           
+            tweet_id = tweet.locator("a[href*='status/']").get_attribute("href") or str(hash(tweet_text))
+            if keyword.lower() in tweet_text.lower() and tweet_id not in replied_tweets:
+                tweet.click()
+                time.sleep(2)
+                reply_text = get_reply(lang)
+                page.fill("div[data-testid='tweetTextInput']", reply_text)
+                page.click("div[data-testid='tweetButton']")
+                replied_tweets.add(tweet_id)
+                print(f"✅ Odpowiedź ({lang.upper()}) do słowa: {keyword}, Tweet: {tweet_text[:100]}...")
+                time.sleep(random.uniform(5, 10)) 
+                return True
+        print(f"ℹ️ Nie znaleziono pasujących tweetów dla słowa: {keyword}")
+        return False
     except Exception as e:
         print(f"⚠️ Błąd przy słowie '{keyword}': {e}")
+        page.screenshot(path=f"error_{keyword}.png")
         return False
 
-    try:
-        page.goto("https://x.com/login")
-        page.fill("input[name='text']", USERNAME)
-        page.click("div[role='button']")
-        time.sleep(2)
-        page.wait_for_selector("input[name='password']", timeout=10000)
-        page.fill("input[name='password']", PASSWORD)
-        page.click("div[role='button']")
-        time.sleep(5)
-    except TimeoutError:
-        page.screenshot(path="error_password_timeout.png")
-        print("❌ Nie znaleziono pola hasła!")
+def main():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        
+        login_to_x(page)
+        
+        while True:
+            try:
+                for keyword in KEYWORDS_PL:
+                    process_keyword(page, keyword, "pl")
+                    time.sleep(random.uniform(3, 7))  
+                for keyword in KEYWORDS_EN:
+                    process_keyword(page, keyword, "en")
+                    time.sleep(random.uniform(3, 7))  
+                print("⏳ Czekam 60 sekund przed kolejnym sprawdzeniem...")
+                time.sleep(60)  
+            except Exception as e:
+                print(f"❌ Błąd w pętli głównej: {e}")
+                page.screenshot(path="error_main.png")
+                login_to_x(page)  
+        
         browser.close()
-        exit(1)
-  
-    for keyword in KEYWORDS_PL:
-        if process_keyword(page, keyword, "pl"):
-            break
-          
-    for keyword in KEYWORDS_EN:
-        if process_keyword(page, keyword, "en"):
-            break
 
-    browser.close()
-
+if __name__ == "__main__":
+    main()
