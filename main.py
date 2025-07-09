@@ -90,12 +90,12 @@ def login_to_x(page):
     try:
         page.goto("https://x.com/login")
 
-        page.wait_for_selector("input[name='text']", timeout=15000)
+        page.wait_for_selector("input[name='text']", timeout=30000)
         page.fill("input[name='text']", USERNAME)
 
         page.screenshot(path="debug_after_username.png")
 
-        button = page.locator('div[role="button"]')
+        button = page.locator('button:has-text("Log in")')
         button.wait_for(timeout=15000)
         button.click()
 
