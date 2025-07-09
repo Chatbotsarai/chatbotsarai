@@ -92,7 +92,7 @@ def login_to_x(page):
         page.fill("input[name='text']", USERNAME)
         page.click("div[role='button']")
         time.sleep(2)
-        page.wait_for_selector("input[name='password']", timeout=10000)
+        page.wait_for_selector("input[name='password']", timeout=30000)
         page.fill("input[name='password']", PASSWORD)
         page.click("div[role='button']")
         time.sleep(5)
