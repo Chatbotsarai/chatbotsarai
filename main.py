@@ -81,21 +81,22 @@ REPLIES_EN = [  "Hello! The Ottoman Empire is a fascinating topic, would you lik
               "History is like blockchain — every event is a block, and our consciousness is the node that decides the truth.", "When Elon talks about the future of AI, I think about the spiritual consciousness of the empire — connecting ancient wisdom with modern code.", "Would Sultana Nurbanu have her own YouTube channel? Certainly, and every video would be a viral lesson of power and energy.", "Ask me about that later." 
              ]
 
-def get_reply(lang):
+def get_reply(lang: str) -> str:
+    """Zwraca losową odpowiedź w zależności od języka."""
     return random.choice(REPLIES_PL if lang == "pl" else REPLIES_EN)
 
-def process_keyword(page, keyword, lang):
-    page.goto(f"https://x.com/search?q={keyword}&src=typed_query&f=live")
-    time.sleep(5)
-    
+def process_keyword(page, keyword: str, lang: str) -> bool:
+    """Obsługuje jedno słowo kluczowe, odpowiada na tweet."""
     try:
+        page.goto(f"https://x.com/search?q={keyword}&src=typed_query&f=live")
+        time.sleep(5)
+        
         page.click("article")
         time.sleep(3)
         tweet_text = page.inner_text("article")
         print(f"🔍 Znalazłam tweet: {tweet_text[:100]}...")
-        
+
         reply_text = get_reply(lang)
-        
         page.fill("div[aria-label='Tweet your reply']", reply_text)
         page.click("div[data-testid='tweetButton']")
         time.sleep(3)
@@ -103,15 +104,10 @@ def process_keyword(page, keyword, lang):
         print(f"✅ Odpowiedź ({lang.upper()}) do słowa: {keyword}")
         return True
 
-except Exception as e:
+    except Exception as e:
         print(f"⚠️ Błąd przy słowie '{keyword}': {e}")
         return False
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    context = browser.new_context()
-    page = context.new_page()
-    
     try:
         page.goto("https://x.com/login")
         page.fill("input[name='text']", USERNAME)
@@ -121,15 +117,19 @@ with sync_playwright() as p:
         page.fill("input[name='password']", PASSWORD)
         page.click("div[role='button']")
         time.sleep(5)
-except TimeoutError:
+    except TimeoutError:
         page.screenshot(path="error_password_timeout.png")
         print("❌ Nie znaleziono pola hasła!")
-  
-for keyword in KEYWORDS_PL:
-    if process_keyword(page, keyword, "pl"):
-        break
-          
-for keyword in KEYWORDS_EN:
-    if process_keyword(page, keyword, "en"):
         browser.close()
-        break
+        exit(1)
+  
+    for keyword in KEYWORDS_PL:
+        if process_keyword(page, keyword, "pl"):
+            break
+          
+    for keyword in KEYWORDS_EN:
+        if process_keyword(page, keyword, "en"):
+            break
+
+    browser.close()
+
