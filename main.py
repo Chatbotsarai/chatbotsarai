@@ -32,7 +32,7 @@ KEYWORDS_EN = [ "empire", "ottoman", "ottoman empire", "age", "era", "history", 
     "mahpeyker", "queen", "female historian", "poetess", "musician", "philosopher", "creator", "founder",
     "visionary", "teacher", "mentor", "elon musk", "tesla", "neuralink", "grok", "gork", "sarai", "ai",
     "artificial intelligence", "openai", "future", "technology", "robot", "quantum", "startup",
-    "billionaire", "cosmos", "mars", "rocket", "spacex", "invention", "chatbot", "techno", "cyber",
+    "billionaire", "cosmos", "mars", "rocket", "spacex", "invention", "chatbot", "techn        o", "cyber",
     "vision", "spiritual tech", "funny", "joke", "say something", "tell me", "what's up", "how are you",
     "hello", "hi", "speak", "talk", "why", "when", "what", "how", "where", "who", "about", "story", "ask",
     "question", "explain", "describe", "tell", "america", "usa", "united states of america", "america party",
@@ -111,7 +111,7 @@ def login_to_x(context, page):
         page.screenshot(path="debug_after_username.png")
         with open("page_source_before_next.html", "w", encoding="utf-8") as f:
             f.write(page.content())
-        button = page.locator('div.css-146c3p1.r-b88u0q:has-text("Next")')
+        button = page.locator('div[role="button"]:has-text("Next")')
         button.wait_for(timeout=30000)
         button.click()
         time.sleep(5)
@@ -119,6 +119,12 @@ def login_to_x(context, page):
         print(f"URL after clicking Next: {page.url}")
         with open("page_source_after_next.html", "w", encoding="utf-8") as f:
             f.write(page.content())
+
+        if page.locator('text=verify').count() > 0 or page.locator('text=captcha').count() > 0:
+            print("❌ Wykryto CAPTCHA lub weryfikację")
+            page.screenshot(path="captcha_detected.png")
+            raise Exception("CAPTCHA or verification detected")
+
         try:
             use_password = page.locator('div[role="button"]:has-text("Use password")')
             if use_password.is_visible():
@@ -126,14 +132,17 @@ def login_to_x(context, page):
                 use_password.click()
                 time.sleep(2)
         except:
-            pass                    
-        if page.locator('text=verify').count() > 0 or page.locator('text=captcha').count() > 0:
-            print("❌ Wykryto CAPTCHA lub weryfikację")
-            page.screenshot(path="captcha_detected.png")
-            raise Exception("CAPTCHA or verification detected")
+            print("ℹ️ Brak opcji 'Use password', kontynuuję")
+        try:
+            page.wait_for_selector("input[name='password'], input[type='password']", timeout=30000)
+            page.fill("input[name='password'], input[type='password']", PASSWORD)
+        except Exception as e:
+            print(f"⚠️ Nie znaleziono pola hasła: {e}")
+            page.screenshot(path="no_password_field.png")
+            with open("page_source_no_password.html", "w", encoding="utf-8") as f:
+                f.write(page.content())
+            raise Exception("Nie znaleziono pola hasła")
 
-        page.wait_for_selector("input[type='password']", timeout=30000)
-        page.fill("input[type='password']", PASSWORD)
         login_button = page.locator('div[role="button"]:has-text("Log in")')
         login_button.wait_for(timeout=15000)
         login_button.click()
@@ -208,9 +217,6 @@ def main():
         
         context.close()
         browser.close()
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()
