@@ -94,6 +94,9 @@ def login_to_x(context, page):
     try:
         if os.path.exists(storage_state_path):
             print(f"ℹ️ Ładowanie zapisanego stanu sesji z {storage_state_path}")
+            with open(storage_state_path, 'r') as f:
+                storage_state = json.load(f)
+            context.add_cookies(storage_state.get('cookies', []))
             page.goto("https://x.com/home")
             time.sleep(5)
             if "login" not in page.url:
@@ -182,12 +185,8 @@ def process_keyword(page, keyword: str, lang: str) -> bool:
 
 def main():
     with sync_playwright() as p:
-        storage_state_path = "storage_state.json"
-        context = p.chromium.launch_persistent_context(
-            user_data_dir="", 
-            headless=True,
-            storage_state=storage_state_path if os.path.exists(storage_state_path) else None
-        )
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context()
         page = context.new_page()
         
         login_to_x(context, page)
@@ -208,6 +207,10 @@ def main():
                 login_to_x(context, page)  
         
         context.close()
+        browser.close()
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()
